@@ -1,14 +1,7 @@
 import streamlit as st
 import time
 import os
-import html
-import re
-
-# Función para limpiar nombres de GIFs y ejercicios
-def clean_name(text):
-    text = text.lower()
-    text = re.sub(r'[^a-z0-9_]', '_', text)  # reemplaza cualquier caracter raro por _
-    return text
+import html  # para escapar caracteres especiales
 
 # Ejercicios
 planes = {
@@ -39,7 +32,7 @@ if "running" not in st.session_state:
     st.session_state.remaining = 0
     st.session_state.exercise = None
     st.session_state.resting = False
-    st.session_state.side = 1
+    st.session_state.side = 1  # para ejercicios por pierna
     st.session_state.paused = False
 
 # Configuración de página
@@ -77,11 +70,12 @@ if st.session_state.running:
         st.session_state.paused = not st.session_state.paused
 
     if st.session_state.resting:
+        # Título y descripción de descanso
         placeholder_title.markdown('<div style="font-size:32px; color:#FFA500">😮‍💨 Descanso</div>', unsafe_allow_html=True)
         placeholder_desc.markdown(html.escape("Respira y prepárate"), unsafe_allow_html=True)
         color = "#FFA500"
 
-        # GIF de descanso
+        # Mostrar GIF de descanso si existe
         descanso_gif = "descanso.gif"
         if os.path.exists(descanso_gif):
             st.image(descanso_gif, width=300)
@@ -102,27 +96,28 @@ if st.session_state.running:
                 else:
                     st.success("✅ Rutina completada")
                 st.rerun()
+
     else:
-        # Nombre y descripción del ejercicio
-        name = ex["n"]
+        # Nombre y descripción del ejercicio, escapando caracteres
+        name = ex["n"].replace('.', '')
         if ex.get("por_pierna"):
             name += f" - Pierna {st.session_state.side}"
         placeholder_title.markdown(f'<div style="font-size:32px; color:#1E90FF">{html.escape(name)}</div>', unsafe_allow_html=True)
         placeholder_desc.markdown(f'<div style="font-size:20px">{html.escape(ex["d"])}</div>', unsafe_allow_html=True)
         color = "#1E90FF"
 
-        # GIF del ejercicio
-        gif_name = f"{clean_name(ex['n'])}.gif"
+        # Mostrar GIF si existe
+        gif_name = f"{ex['n'].replace(' ', '_').replace('.', '').replace('ñ','n')}.gif"
         if os.path.exists(gif_name):
             st.image(gif_name, width=300)
 
-        # Saltar ejercicio
+        # Botón saltar ejercicio → inicia descanso
         if st.button("Saltar ejercicio"):
             st.session_state.resting = True
             st.session_state.remaining = rest_time
             st.rerun()
 
-    # Temporizador
+    # Temporizador simple
     while st.session_state.remaining > 0:
         if not st.session_state.paused:
             mins, secs = divmod(st.session_state.remaining, 60)
@@ -145,6 +140,7 @@ if st.session_state.running:
             st.session_state.remaining = rest_time
             st.rerun()
     else:
+        # Después del descanso
         st.session_state.resting = False
         st.session_state.idx += 1
         if st.session_state.idx < len(planes[plan]):
