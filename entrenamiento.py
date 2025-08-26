@@ -1,6 +1,7 @@
 import streamlit as st
 import time
 import os
+import html  # para escapar caracteres especiales
 
 # Ejercicios
 planes = {
@@ -71,7 +72,7 @@ if st.session_state.running:
     if st.session_state.resting:
         # Título y descripción de descanso
         placeholder_title.markdown('<div style="font-size:32px; color:#FFA500">😮‍💨 Descanso</div>', unsafe_allow_html=True)
-        placeholder_desc.markdown("Respira y prepárate")
+        placeholder_desc.markdown(html.escape("Respira y prepárate"), unsafe_allow_html=True)
         color = "#FFA500"
 
         # Mostrar GIF de descanso si existe
@@ -97,15 +98,15 @@ if st.session_state.running:
                 st.rerun()
 
     else:
-        # Nombre y descripción del ejercicio
-        name = ex["n"]
+        # Nombre y descripción del ejercicio, escapando caracteres
+        name = ex["n"].replace('.', '')
         if ex.get("por_pierna"):
             name += f" - Pierna {st.session_state.side}"
-        placeholder_title.markdown(f'<div style="font-size:32px; color:#1E90FF">{name}</div>', unsafe_allow_html=True)
-        placeholder_desc.markdown(f'<div style="font-size:20px">{ex["d"]}</div>', unsafe_allow_html=True)
+        placeholder_title.markdown(f'<div style="font-size:32px; color:#1E90FF">{html.escape(name)}</div>', unsafe_allow_html=True)
+        placeholder_desc.markdown(f'<div style="font-size:20px">{html.escape(ex["d"])}</div>', unsafe_allow_html=True)
         color = "#1E90FF"
 
-        # Mostrar GIF si existe (limpieza de caracteres especiales)
+        # Mostrar GIF si existe
         gif_name = f"{ex['n'].replace(' ', '_').replace('.', '').replace('ñ','n')}.gif"
         if os.path.exists(gif_name):
             st.image(gif_name, width=300)
